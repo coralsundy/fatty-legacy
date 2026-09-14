@@ -1,3 +1,17 @@
+# FaTTY-Legacy (community fork)
+
+A maintained fork of [FaTTY](https://github.com/juho-p/fatty), the Cygwin terminal emulator with tabs. Upstream has been dormant since 2021 and archived in 2024; this fork keeps it buildable with current toolchains and backports features that upstream mintty gained since, in small, reviewable pieces.
+
+Changes stay close to upstream sources so future merges remain possible. See [CHANGELOG.md](CHANGELOG.md) for what changed in each version.
+
+The code base is kept as of FaTTY 1.6.0 (mintty 2.0.2). Changes are limited to cherry-picked mintty upstream changes and a few additions for personal use, so it is opinionated rather than a release-for-release match with mintty.
+
+For a fork that keeps pace with the latest mintty source, see [paolo-sz/fatty](https://github.com/paolo-sz/fatty).
+
+The rest of this file is the original upstream README, kept for reference.
+
+---
+
 FaTTY
 -----
 

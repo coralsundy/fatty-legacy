@@ -94,6 +94,7 @@ typedef struct {
   bool bell_taskbar;
   string printer;
   bool confirm_exit;
+  bool allow_set_selection;
   // Command line
   string classname;
   char hold;

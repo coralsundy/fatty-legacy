@@ -1,0 +1,82 @@
+name: release
+
+# Build fatty.exe on Windows (Cygwin toolchain), then cut a tag and publish a
+# release with fatty.exe attached. The tag comes from src/appinfo.h and has no
+# `v` prefix (e.g. 1.7.0), so bumping the version there is what triggers a new
+# release. Re-running is harmless: if a release already exists for the tag the
+# last step is skipped.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      # Checkout with LF endings: the sources are LF-based and the Makefile
+      # pipes res.rc through the preprocessor.
+      - name: Keep line endings as committed
+        run: git config --global core.autocrlf input
+
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install Cygwin
+        uses: cygwin/cygwin-install-action@3f0a3f9f988f7e96b8c18098ae05eaec175f5b52 # v6
+        with:
+          packages: |
+            gcc-g++
+            make
+            w32api-headers
+            w32api-runtime
+
+      - name: Read version from src/appinfo.h
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          major=""; minor=""; patch=""
+          while read -r a b c; do
+            case "$a" in
+              \#define)
+                case "$b" in
+                  MAJOR_VERSION) major="$c" ;;
+                  MINOR_VERSION) minor="$c" ;;
+                  PATCH_NUMBER)  patch="$c" ;;
+                esac
+                ;;
+            esac
+          done < src/appinfo.h
+          if [ -z "$major" ] || [ -z "$minor" ] || [ -z "$patch" ]; then
+            echo "could not read the version from src/appinfo.h" >&2
+            exit 1
+          fi
+          tag="$major.$minor.$patch"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "releasing $tag"
+
+      - name: Build fatty.exe
+        shell: bash
+        run: make -C src
+
+      - name: Cut tag and publish release
+        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
+        with:
+          tag: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          body: See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/master/CHANGELOG.md) for the changes in this release.
+          commit: ${{ github.sha }}
+          artifacts: src/fatty.exe
+          artifactErrorsFailBuild: true
+          skipIfReleaseExists: true

@@ -11,8 +11,44 @@
 #include "charset.h"
 #include "child.h"
 #include "print.h"
+#include "base64.h"
 
 #include <sys/termios.h>
+
+#define TERM_CMD_BUF_INC_STEP 128
+#define TERM_CMD_BUF_MAX_SIZE (1024 * 1024)
+
+/* Append a byte to the OSC/DCS string buffer, growing it as needed.
+ * Upstream 2.6.1 equivalent, adapted to take a struct term* (FaTTY is
+ * multitab, upstream has a single global term).
+ * Returns false when the size cap is hit, i.e. the server sent too many
+ * command characters; the byte is dropped and parsing continues.
+ */
+static bool
+term_push_cmd(struct term* term, char c)
+{
+  uint new_size;
+
+  /* Need 1 more for null byte */
+  if (term->cmd_len + 1 < term->cmd_buf_cap) {
+    term->cmd_buf[term->cmd_len++] = c;
+    return true;
+  }
+
+  if (term->cmd_buf_cap >= TERM_CMD_BUF_MAX_SIZE) {
+    /* Server sends too many cmd characters */
+    return false;
+  }
+  new_size = term->cmd_buf_cap + TERM_CMD_BUF_INC_STEP;
+  if (new_size >= TERM_CMD_BUF_MAX_SIZE) {
+    // cosmetic limitation (relevant limitation above)
+    new_size = TERM_CMD_BUF_MAX_SIZE;
+  }
+  term->cmd_buf = renewn(term->cmd_buf, new_size);
+  term->cmd_buf_cap = new_size;
+  term->cmd_buf[term->cmd_len++] = c;
+  return true;
+}
 
 /* This combines two characters into one value, for the purpose of pairing
  * any modifier byte and the final byte in escape sequences.
@@ -999,6 +1035,49 @@ do_colour_osc(struct term* term, uint i)
 }
 
 /*
+ * OSC52: \e]52;[cp0-6];?|base64-string\07"
+ * Only system clipboard is supported now.
+ */
+static void
+do_clipboard(struct term* term)
+{
+
+  char *s = term->cmd_buf;
+  char *output;
+  int len;
+  int ret;
+
+  if (!cfg.allow_set_selection) {
+    return;
+  }
+
+  while (*s != ';' && *s != '\0') {
+    s += 1;
+  }
+  if (*s != ';') {
+    return;
+  }
+  s += 1;
+  if (*s == '?') {
+    /* Reading from clipboard is unsupported */
+    return;
+  }
+  len = strlen(s);
+
+  output = malloc(len + 1);
+  if (output == NULL) {
+    return;
+  }
+
+  ret = base64_decode_clip(s, len, output, len);
+  if (ret > 0) {
+    output[ret] = '\0';
+    win_copy_text(output);
+  }
+  free(output);
+}
+
+/*
  * Process OSC and DCS command sequences.
  */
 static void
@@ -1056,6 +1135,7 @@ do_cmd(struct term* term)
       *s = 0;
       child_printf(term->child, "\e]7771;!%s\e\\", term->cmd_buf);
     }
+    when 52: do_clipboard(term);
   }
 }
 
@@ -1298,7 +1378,7 @@ term_write(struct term* term, const char *buf, uint len)
         if (isxdigit(c)) {
           // The dodgy Linux palette sequence: keep going until we have
           // seven hexadecimal digits.
-          term->cmd_buf[term->cmd_len++] = c;
+          term_push_cmd(term, c);
           if (term->cmd_len == 7) {
             uint n, r, g, b;
             sscanf(term->cmd_buf, "%1x%2x%2x%2x", &n, &r, &g, &b);
@@ -1325,8 +1405,7 @@ term_write(struct term* term, const char *buf, uint len)
           when '\e':
             term->state = CMD_ESCAPE;
           otherwise:
-            if (term->cmd_len < lengthof(term->cmd_buf) - 1)
-              term->cmd_buf[term->cmd_len++] = c;
+            term_push_cmd(term, c);
         }
       when IGNORE_STRING:
         switch (c) {
