@@ -44,6 +44,7 @@ void win_check_glyphs(wchar_t *wcs, unsigned int num);
 
 void win_open(wstring path);
 void win_copy(const wchar_t *data, unsigned int *attrs, int len);
+void win_copy_text(const char *s);
 void win_paste(void);
 
 void win_set_timer(void (*cb)(void*), void* data, unsigned int ticks);

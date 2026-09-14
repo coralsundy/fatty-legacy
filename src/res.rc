@@ -38,7 +38,7 @@ BEGIN
       VALUE "FileVersion", POINT_VERSION
       VALUE "FileDescription", APPDESC
       VALUE "ProductName", APPNAME
-      VALUE "ProductVersion", VERSION
+      VALUE "ProductVersion", POINT_VERSION
       VALUE "CompanyName", AUTHOR
       VALUE "LegalCopyright", COPYRIGHT
     END

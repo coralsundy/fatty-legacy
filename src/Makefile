@@ -1,4 +1,4 @@
-SRC := charset.c child.c config.c ctrls.c minibidi.c std.c term.c termclip.c \
+SRC := base64.c charset.c child.c config.c ctrls.c minibidi.c std.c term.c termclip.c \
 	termline.c termmouse.c termout.c winclip.c winctrls.c windialog.c wininput.c \
 	winmain.c winprint.c wintext.c wintip.c xcwidth.c \
 	childxx.cc winxx.cc \

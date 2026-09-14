@@ -78,6 +78,7 @@ const config default_cfg = {
   .bell_taskbar = true,
   .printer = "",
   .confirm_exit = true,
+  .allow_set_selection = false,
   // Command line
   .classname = "",
   .hold = HOLD_START,
@@ -199,6 +200,7 @@ options[] = {
   {"BellTaskbar", OPT_BOOL, offcfg(bell_taskbar)},
   {"Printer", OPT_STRING, offcfg(printer)},
   {"ConfirmExit", OPT_BOOL, offcfg(confirm_exit)},
+  {"AllowSetSelection", OPT_BOOL, offcfg(allow_set_selection)},
 
   // Command line
   {"Class", OPT_STRING, offcfg(classname)},
@@ -1100,5 +1102,14 @@ setup_config_box(controlbox * b)
   ctrl_checkbox(
     s, "&Prompt about running processes on close",
     dlg_stdcheckbox_handler, &new_cfg.confirm_exit
+  );
+
+ /*
+  * The Experimental panel.
+  */
+  s = ctrl_new_set(b, "Experimental (security risk)", null);
+  ctrl_checkbox(
+    s, "Allow &clipboard writes (OSC 52)",
+    dlg_stdcheckbox_handler, &new_cfg.allow_set_selection
   );
 }

@@ -94,6 +94,20 @@ win_copy_title(void)
   win_copy(title, 0, len + 1);
 }
 
+void
+win_copy_text(const char *s)
+{
+  int size = cs_mbstowcs(NULL, s, 0);   // wchar count, excl. terminating NUL
+  if (size <= 0)
+    return;
+  wchar *text = malloc((size + 1) * sizeof(wchar));
+  if (text == NULL)
+    return;
+  cs_mbstowcs(text, s, size + 1);       // writes NUL at text[size]
+  win_copy(text, 0, size + 1);          // len in wchar count, incl. NUL
+  free(text);
+}
+
 /*
  *  Switch to next or previous application window in z-order
  */

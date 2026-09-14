@@ -306,7 +306,8 @@ struct term {
   uint csi_argv_defined[32];
 
   int  cmd_num;        // OSC command number, or -1 for DCS
-  char cmd_buf[2048];  // OSC or DCS string buffer and length
+  char *cmd_buf;       // OSC or DCS string buffer, grown on demand
+  uint cmd_buf_cap;    // allocated capacity of cmd_buf (0 until first use)
   uint cmd_len;
 
   uchar *tabs;

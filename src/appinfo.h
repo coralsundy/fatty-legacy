@@ -5,7 +5,7 @@
 #define WEBSITE "http://github.com/juho-p/fatty"
 
 #define MAJOR_VERSION  1
-#define MINOR_VERSION  6
+#define MINOR_VERSION  7
 #define PATCH_NUMBER   0
 
 // needed for res.rc
@@ -35,7 +35,7 @@
 
 // needed for fatty -V and Options... - About...
 #define VERSION_TEXT \
-  APPNAME " " VERSION " (" STRINGIFY(TARGET) ")\n" \
+  APPNAME " " POINT_VERSION " (" STRINGIFY(TARGET) ")\n" \
   COPYRIGHT "\n" \
   "License GPLv3+: GNU GPL version 3 or later\n" \
   "There is no warranty, to the extent permitted by law.\n"
