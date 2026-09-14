@@ -18,20 +18,39 @@ Version headings link to the commit range for that release.
 ### Changed
 
 - The OSC/DCS string buffer is now grown on demand (up to 1 MiB), backported from mintty 2.6.1, so large OSC 52 payloads are no longer truncated.
-- New tabs open in the current directory, and the first tab opens in `$HOME`.
 
 ### Fixed
 
 - `-V` and the About box truncated the version to `major.minor`; the version text and the executable's ProductVersion now show the full version.
 - Clipboard payloads past ~1.5 KB were silently truncated to a partial prefix.
-- Tab title management: each tab now keeps its own title stack, and titles are restored correctly when switching tabs or returning from full-screen applications.
-- Segmentation fault when closing tabs (Ctrl+Shift+W) too quickly, and when opening several tabs from the command line and closing them.
-- Tab bar rendering: incorrect padding, incorrectly scaled tab width, and the tab bar is hidden when only one tab exists.
-- Build with recent toolchains: rc files are preprocessed manually to work around changed `windres` behaviour, linking and compilation warnings fixed, and `-Werror` dropped for compatibility with future compilers.
 
 ---
 
 Releases below are the original FaTTY, before this fork.
+
+## [1.6.1]
+
+Not a release by the original FaTTY upstream ([juho-p/fatty](https://github.com/juho-p/fatty)); that project never tagged or released anything after 1.6.0, but its master accumulated the 22 commits below before this fork branched from it. (The upstream here is FaTTY; mintty, which FaTTY derives from, is a separate project.) Those commits are the base 1.7.0 builds on, so they are recorded to account for the history between 1.6.0 and 1.7.0. Authors: paolo-sz and Juho Peltonen, with Marc Paquette and jerry.wu.
+
+### Added
+
+- Per-tab titles (`-t`, set before the matching `-b`), a window title that follows the active tab, and a fixed window title via `-T`.
+- Prompt to close all terminals or only the active one, when closing the window with several tabs open.
+- First launch opens in `$HOME`; new tabs open in the current folder.
+
+### Changed
+
+- Tab rendering: titles vertically centred, a maximum tab width, and spacing between the tab bar and the terminal.
+- Callback cleanup on tab removal rewritten.
+
+### Fixed
+
+- Window and tab titles are restored on returning from full-screen applications such as mined or vi.
+- The tab title stack is per tab, so pushing and popping from several tabs no longer swaps titles.
+- Segfault when closing tabs (Ctrl+Shift+W) too quickly, and when opening several tabs from the command line with some never selected.
+- Tab bar drawing: window padding, and tab width scaling.
+- Build with newer toolchains: rc files preprocessed by hand for `windres`, `-Werror` dropped, and compilation and linking warnings fixed.
+- README: spawning multiple tabs, and a section marker that is now parsed.
 
 ## [1.6.0]
 
@@ -106,7 +125,8 @@ Releases below are the original FaTTY, before this fork.
 
 - First release: a Cygwin terminal emulator with tabs, based on mintty.
 
-[1.7.0]: https://github.com/coralsundy/fatty-legacy/compare/a40b22b...HEAD
+[1.7.0]: https://github.com/coralsundy/fatty-legacy/compare/61543c0...HEAD
+[1.6.1]: https://github.com/coralsundy/fatty-legacy/compare/a40b22b...61543c0
 [1.6.0]: https://github.com/coralsundy/fatty-legacy/compare/15a7b54...a40b22b
 [1.5.0]: https://github.com/coralsundy/fatty-legacy/compare/4f9465a...15a7b54
 [1.4.0]: https://github.com/coralsundy/fatty-legacy/compare/b31bfc5...4f9465a

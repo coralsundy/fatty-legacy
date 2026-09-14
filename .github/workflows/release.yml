@@ -1,14 +1,9 @@
 name: release
 
-# Build fatty.exe on Windows (Cygwin toolchain), then cut a tag and publish a
-# release with fatty.exe attached. The tag comes from src/appinfo.h and has no
-# `v` prefix (e.g. 1.7.0), so bumping the version there is what triggers a new
-# release. Re-running is harmless: if a release already exists for the tag the
-# last step is skipped.
-
 on:
   push:
-    branches: [master]
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
 
 permissions:
@@ -43,9 +38,11 @@ jobs:
 
       - name: Read version from src/appinfo.h
         id: version
-        shell: bash
+        # igncr: the runner writes the step script with CRLF, which breaks
+        # `set -o pipefail` ("set: pipefail") and case/while parsing. The runner
+        # already passes -eo pipefail, so no explicit `set` line is needed.
+        shell: bash --noprofile --norc -o igncr -eo pipefail {0}
         run: |
-          set -euo pipefail
           major=""; minor=""; patch=""
           while read -r a b c; do
             case "$a" in
@@ -67,7 +64,7 @@ jobs:
           echo "releasing $tag"
 
       - name: Build fatty.exe
-        shell: bash
+        shell: bash --noprofile --norc -o igncr -eo pipefail {0}
         run: make -C src
 
       - name: Cut tag and publish release
@@ -79,4 +76,5 @@ jobs:
           commit: ${{ github.sha }}
           artifacts: src/fatty.exe
           artifactErrorsFailBuild: true
+          prerelease: true
           skipIfReleaseExists: true
